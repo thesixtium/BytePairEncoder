@@ -1,14 +1,90 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class BytePairEncoder {
+    private ArrayList<KeyDataPair> pairs;
+    private String encodedString;
 
-    public static ArrayList<String[]> encode(String input){
-        ArrayList<KeyDataPair> returnArrayList = new ArrayList<>();
-
-        return returnArrayList;
+    public BytePairEncoder(String input){
+        pairs = new ArrayList<>();
+        System.out.println(input);
+        String key, value;
+        while((value = longestRepeatedSubstring(input)).length() > 2){
+            key = unusedCharacter(input);
+            if(key == null)
+                break;
+            pairs.add(new KeyDataPair(key, value));
+            input = input.replace(value, key);
+            System.out.println(value + " -> " + key);
+        }
+        this.encodedString = input;
+        System.out.println(this.encodedString);
     }
 
-    public static boolean decode(String input){
+    private String longestRepeatedSubstring(String str) {
+        int n = str.length();
+        int LCSRe[][] = new int[n + 1][n + 1];
 
+        String res = ""; // To store result
+        int res_length = 0; // To store length of result
+
+        // building table in bottom-up manner
+        int i, index = 0;
+        for (i = 1; i <= n; i++) {
+            for (int j = i + 1; j <= n; j++) {
+                // (j-i) > LCSRe[i-1][j-1] to remove
+                // overlapping
+                if (str.charAt(i - 1) == str.charAt(j - 1)
+                        && LCSRe[i - 1][j - 1] < (j - i)) {
+                    LCSRe[i][j] = LCSRe[i - 1][j - 1] + 1;
+
+                    // updating maximum length of the
+                    // substring and updating the finishing
+                    // index of the suffix
+                    if (LCSRe[i][j] > res_length) {
+                        res_length = LCSRe[i][j];
+                        index = Math.max(i, index);
+                    }
+                } else {
+                    LCSRe[i][j] = 0;
+                }
+            }
+        }
+
+        // If we have non-empty result, then insert all
+        // characters from first character to last
+        // character of String
+        if (res_length > 0) {
+            for (i = index - res_length + 1; i <= index; i++) {
+                res += str.charAt(i - 1);
+            }
+        }
+
+        return res;
+    }
+
+    private String unusedCharacter(String str){
+        // 32 - 126
+        char returnChar = 33;
+        while(str.indexOf(returnChar) != -1)
+            if(returnChar == 127)
+                return null;
+            else
+                returnChar++;
+
+        return String.valueOf(returnChar);
+    }
+
+    public String decode(){
+        String decode = encodedString;
+        ArrayList<KeyDataPair> decodePairs = new ArrayList<>(pairs);
+        Collections.reverse(decodePairs);
+        System.out.println(decode);
+        for(KeyDataPair i : decodePairs){
+            decode = decode.replace(i.getKey(), i.getValue());
+            System.out.println(i.getKey() + " -> " + i.getValue());
+        }
+        System.out.println(decode);
+        return decode;
     }
 }
